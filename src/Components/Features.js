@@ -5,12 +5,15 @@ const FEATURES = [
   "Nested Items",
   "Rows are infinitely DEEP",
   "'Enter' Key creates a new row",
-  "'Delete' key at beginning of Row should remove the row if empty"
+  "'Backspace' key at beginning of Row should remove the row if empty"
 ];
 
 const TODO = [
-  "'Delete' key at beginning of Row should merge current and previous rows",
+  "'Backspace' key at beginning of Row should merge current and previous rows",
   "'Enter' key will move text after cursor to new row, if cursor in middle of row.",
+  "typing `[]` or `[x]` should convert the text row into a checkbox row",
+  "'Backspace' key at beginning of checkbox row converts back to a text row",
+  "Should be able to drag/drop photos onto the page, and create new image-rows",
   "Convert Features/TODOs into TESTS",
   "Create simpler API",
   "DogFood the simpler API"
