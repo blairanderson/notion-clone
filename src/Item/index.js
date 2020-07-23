@@ -35,27 +35,31 @@ const Item = React.memo(props => {
     onReturn
   } = props;
 
-  const [hasFocus, setFocus] = React.useState(false);
+  // const [hasFocus, setFocus] = React.useState(false);
   // const [handleTextChange] = useDebouncedCallback(onTextChange, 5);
   const handleCheckbox = e => {
-    console.log(e.target.value);
-    onCheckboxChange(id, text, e);
+    log(e.target.value);
+    onCheckboxChange(id, text, "toggle");
   };
 
-  const handleChange = e => {
-    console.log(e.target.value);
+  function handleChange(e) {
     if (e.target.value.startsWith("[]")) {
-      onCheckboxChange(id, e.target.value.substr(3), { checked: false });
-      return true;
+      const newText = e.target.value.toString().substring(2);
+      return onCheckboxChange(id, newText, {
+        checked: false
+      });
     }
 
     if (e.target.value.startsWith("[x]")) {
-      onCheckboxChange(id, e.target.value.substr(4), { checked: true });
-      return true;
+      const newText = e.target.value.toString().substring(3);
+      return onCheckboxChange(id, newText, {
+        checked: true
+      });
     }
 
+    // console.log("onTextChange:" + e.target.value);
     onTextChange(id, e.target.value);
-  };
+  }
 
   const handleClickDelete = () => {
     onDelete(id);
@@ -63,27 +67,30 @@ const Item = React.memo(props => {
 
   const handleKeyDown = e => {
     console.log(`keyCode:${e.keyCode} key:${e.key}`);
-
     if (e.shiftKey && e.keyCode === 9) {
       e.preventDefault();
       const newDepth = depth - 1;
       if (newDepth > -1) {
         changeDepth(id, newDepth);
       }
-      console.log("tabe WITH SHIFT");
     }
+
     if (!e.shiftKey && e.keyCode === 9) {
       e.preventDefault();
       const newDepth = depth + 1;
       if (newDepth > -1) {
         changeDepth(id, newDepth);
       }
-      console.log("tab WITHOUT shift");
     }
 
     if (e.key === "Enter") {
       e.preventDefault();
       onReturn(id);
+    }
+
+    if (e.keyCode === 8 && typeof checkbox === "object") {
+      // delete/backspacing a checkbox removes the checkbox
+      return onCheckboxChange(id, text, undefined);
     }
 
     if ((e.keyCode === 8 && text === "") || e.keyCode === 46) {
@@ -105,11 +112,11 @@ const Item = React.memo(props => {
   const inputRef = React.useRef(null);
 
   React.useEffect(() => {
-    if (autoFocus && !hasFocus) {
+    if (autoFocus) {
+      log({ id, autoFocus });
       inputRef.current.focus();
-      setFocus(true);
     }
-  }, [autoFocus, hasFocus]);
+  }, [inputRef, id, autoFocus]);
 
   const showCheckbox = typeof checkbox === "object";
 
@@ -138,3 +145,7 @@ const Item = React.memo(props => {
   );
 });
 export default Item;
+
+function log(p) {
+  console.log(JSON.stringify(p));
+}

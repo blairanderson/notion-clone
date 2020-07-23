@@ -7,14 +7,15 @@ const FEATURES = [
   "'Enter' Key creates a new row",
   "'Backspace' key at beginning of Row should remove the row if empty",
   "'TAB' increase the depth of a row and children",
-  "'SHIFT-TAB' decreases the depth of a row and children"
+  "'SHIFT-TAB' decreases the depth of a row and children",
+  "typing `[]` or `[x]` should convert the text row into a checkbox row",
+  "'Backspace' key at beginning of checkbox row converts back to a text row"
 ];
 
 const TODO = [
+  "All Changes should be dastabase-backed to an API server thing",
   "'Backspace' key at beginning of Row should merge current and previous rows",
   "'Enter' key will move text after cursor to new row, if cursor in middle of row.",
-  "typing `[]` or `[x]` should convert the text row into a checkbox row",
-  "'Backspace' key at beginning of checkbox row converts back to a text row",
   "Should be able to drag/drop photos onto the page, and create new image-rows",
   "Convert Features/TODOs into TESTS",
   "Create simpler API",

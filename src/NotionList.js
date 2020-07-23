@@ -15,7 +15,7 @@ import Sortly, {
 
 import Item from "./Item";
 
-function NotionList({ defaultItems }) {
+function NotionList({ defaultItems, maxDepth }) {
   const [items, setItems] = React.useState(defaultItems);
   const flipKey = items.map(({ id }) => id).join(".");
 
@@ -34,19 +34,18 @@ function NotionList({ defaultItems }) {
 
   const handleCheckboxChange = (id, text, action) => {
     const index = items.findIndex(item => item.id === id);
-    console.log(id + "|" + JSON.stringify(action));
+
     if (action === "toggle") {
-      setItems(
+      return setItems(
         update(items, {
-          [index]: { checkbox: { $toggle: "checked" } }
+          [index]: { checkbox: { $toggle: ["checked"] } }
         })
       );
-      return true;
     }
 
     setItems(
       update(items, {
-        [index]: { $merge: { checkbox: action } }
+        [index]: { text: { $set: text }, $merge: { checkbox: action } }
       })
     );
   };
@@ -71,7 +70,7 @@ function NotionList({ defaultItems }) {
 
   function changeDepth(id, newDepth) {
     const index = items.findIndex(item => item.id === id);
-    setItems(updateDepth(items, index, newDepth));
+    setItems(updateDepth(items, index, newDepth, maxDepth || 10));
   }
 
   const handleReturn = id => {
