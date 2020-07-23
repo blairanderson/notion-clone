@@ -5,7 +5,9 @@ const FEATURES = [
   "Nested Items",
   "Rows are infinitely DEEP",
   "'Enter' Key creates a new row",
-  "'Backspace' key at beginning of Row should remove the row if empty"
+  "'Backspace' key at beginning of Row should remove the row if empty",
+  "'TAB' increase the depth of a row and children",
+  "'SHIFT-TAB' decreases the depth of a row and children"
 ];
 
 const TODO = [

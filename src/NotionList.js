@@ -5,11 +5,17 @@ import { Box, Button } from "@material-ui/core";
 import { Flipper } from "react-flip-toolkit";
 import update from "immutability-helper";
 import { DndProvider } from "react-dnd";
-import Sortly, { ContextProvider, add, remove, insert } from "react-sortly";
-import ItemRenderer from "./ItemRenderer";
+import Sortly, {
+  ContextProvider,
+  add,
+  remove,
+  insert,
+  updateDepth
+} from "react-sortly";
+
+import Item from "./Item";
 
 function NotionList({ defaultItems }) {
-  console.log(JSON.stringify(defaultItems));
   const [items, setItems] = React.useState(defaultItems);
   const flipKey = items.map(({ id }) => id).join(".");
 
@@ -17,16 +23,16 @@ function NotionList({ defaultItems }) {
     setItems(newItems);
   };
 
-  const handleChangeName = (id, name) => {
+  const handleTextChange = (id, text) => {
     const index = items.findIndex(item => item.id === id);
     setItems(
       update(items, {
-        [index]: { name: { $set: name } }
+        [index]: { text: { $set: text } }
       })
     );
   };
 
-  const handleCheckboxChange = (id, action) => {
+  const handleCheckboxChange = (id, text, action) => {
     const index = items.findIndex(item => item.id === id);
     console.log(id + "|" + JSON.stringify(action));
     if (action === "toggle") {
@@ -57,10 +63,15 @@ function NotionList({ defaultItems }) {
     setItems(
       add(items, {
         id: Date.now(),
-        name: faker.name.findName(),
+        text: faker.name.findName(),
         autoFocus: true
       })
     );
+  }
+
+  function changeDepth(id, newDepth) {
+    const index = items.findIndex(item => item.id === id);
+    setItems(updateDepth(items, index, newDepth));
   }
 
   const handleReturn = id => {
@@ -70,7 +81,7 @@ function NotionList({ defaultItems }) {
         items.map(item => Object.assign(item, { autoFocus: false })),
         {
           id: Date.now(),
-          name: "",
+          text: "",
           autoFocus: true
         },
         index
@@ -85,8 +96,9 @@ function NotionList({ defaultItems }) {
           {props => (
             <ItemRenderer
               {...props}
-              onChangeName={handleChangeName}
-              onChangeCheckbox={handleCheckboxChange}
+              onTextChange={handleTextChange}
+              changeDepth={changeDepth}
+              onCheckboxChange={handleCheckboxChange}
               onDelete={handleDelete}
               onReturn={handleReturn}
             />
