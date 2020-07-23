@@ -26,7 +26,7 @@ export default function Features(props) {
       <ul>
         {FEATURES.map(function(e) {
           return (
-            <li>
+            <li key={btoa(e)}>
               <input type="checkbox" readOnly checked={true} />
               {e}
             </li>
@@ -37,8 +37,8 @@ export default function Features(props) {
       <ul>
         {TODO.map(function(e) {
           return (
-            <li>
-              <input type="checkbox" readOnly />
+            <li key={btoa(e)}>
+              <input type="checkbox" readOnly checked={false} />
               {e}
             </li>
           );

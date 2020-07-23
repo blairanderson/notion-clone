@@ -11,13 +11,26 @@ const headerLink = window.location.href.startsWith("https://codesandbox")
 export default function Header(props) {
   return (
     <>
-      <h1 style={{ marginBottom: 0, fontFamily: "sans-serif" }}>
-        <a style={{ color: "black" }} href={headerLink}>
-          React Notion Clone
+      <h1 style={{ marginBottom: 0, fontFamily: "monospace" }}>
+        <a
+          style={{
+            fontWeight: 100,
+            textDecoration: "none",
+            color: "black"
+          }}
+          href={headerLink}
+        >
+          Notion-Like List Builder
         </a>
       </h1>
       <div style={{ marginBottom: "10px" }}>
-        <a href={GITHUB}>Github</a> / <a href={CODESANDBOX}>Codesandbox</a>
+        <a rel="noopener noreferrer" target="_blank" href={GITHUB}>
+          Github
+        </a>
+        {" / "}
+        <a rel="noopener noreferrer" target="_blank" href={CODESANDBOX}>
+          Codesandbox
+        </a>
       </div>
     </>
   );

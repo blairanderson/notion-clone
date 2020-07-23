@@ -8,14 +8,10 @@ import { DndProvider } from "react-dnd";
 import Sortly, { ContextProvider, add, remove, insert } from "react-sortly";
 import ItemRenderer from "./ItemRenderer";
 
-const ITEMS = [
-  { id: 1, name: "Some Awesome Notes here", depth: 0 },
-  { id: 2, name: "i love these notes", depth: 0 }
-];
-
-function NotionList() {
-  const [items, setItems] = React.useState(ITEMS);
-  const flipKey = items.map(({ id }) => id).join(".")
+function NotionList({ defaultItems }) {
+  console.log(JSON.stringify(defaultItems));
+  const [items, setItems] = React.useState(defaultItems);
+  const flipKey = items.map(({ id }) => id).join(".");
 
   const handleChange = newItems => {
     setItems(newItems);
@@ -82,7 +78,6 @@ function NotionList() {
     );
   };
 
-
   return (
     <div>
       <Flipper flipKey={flipKey}>
@@ -114,10 +109,10 @@ function NotionList() {
   );
 }
 
-const AppContainer = () => (
+const AppContainer = props => (
   <DndProvider backend={HTML5Backend}>
     <ContextProvider>
-      <NotionList />
+      <NotionList {...props} />
     </ContextProvider>
   </DndProvider>
 );
