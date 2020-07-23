@@ -5,13 +5,7 @@ import ReorderIcon from "@material-ui/icons/Reorder";
 import CloseIcon from "@material-ui/icons/Close";
 import { Flipped } from "react-flip-toolkit";
 import TextRow from "./TextRow";
-
-import {
-  updateDepth,
-  useDrag,
-  useDrop,
-  useIsClosestDragging
-} from "react-sortly";
+import { useDrag, useDrop, useIsClosestDragging } from "react-sortly";
 
 const useStyles = makeStyles(theme => ({
   root: props => ({
