@@ -94,7 +94,7 @@ function NotionList({ defaultItems }) {
       <Flipper flipKey={flipKey}>
         <Sortly items={items} onChange={handleChange}>
           {props => (
-            <ItemRenderer
+            <Item
               {...props}
               onTextChange={handleTextChange}
               changeDepth={changeDepth}
