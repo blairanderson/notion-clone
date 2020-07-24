@@ -125,7 +125,11 @@ function NotionList({ defaultItems, listType, maxDepth }) {
   return (
     <div>
       <Flipper flipKey={flipKey}>
-        <Sortly items={numberedItems} onChange={handleChange}>
+        <Sortly
+          items={numberedItems}
+          maxDepth={maxDepth}
+          onChange={handleChange}
+        >
           {props => (
             <Item
               {...props}
