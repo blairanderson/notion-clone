@@ -27,14 +27,14 @@ const Item = React.memo(props => {
   const {
     id,
     depth,
-    data: { text, autoFocus, checkbox },
+    data: { number, text, autoFocus, checkbox },
     onTextChange,
     changeDepth,
     onCheckboxChange,
     onDelete,
     onReturn
   } = props;
-
+  const inputRef = React.useRef(null);
   // const [hasFocus, setFocus] = React.useState(false);
   // const [handleTextChange] = useDebouncedCallback(onTextChange, 5);
   const handleCheckbox = e => {
@@ -61,13 +61,15 @@ const Item = React.memo(props => {
     onTextChange(id, e.target.value);
   }
 
-  const handleClickDelete = () => {
-    onDelete(id);
-  };
+  const TAB_KEY = 9;
+  const DELETE_KEY = 8;
 
   const handleKeyDown = e => {
     console.log(`keyCode:${e.keyCode} key:${e.key}`);
-    if (e.shiftKey && e.keyCode === 9) {
+    const { selectionStart, selectionEnd } = inputRef.current;
+    log({ selectionStart, selectionEnd });
+
+    if (e.shiftKey && e.keyCode === TAB_KEY) {
       e.preventDefault();
       const newDepth = depth - 1;
       if (newDepth > -1) {
@@ -75,7 +77,7 @@ const Item = React.memo(props => {
       }
     }
 
-    if (!e.shiftKey && e.keyCode === 9) {
+    if (!e.shiftKey && e.keyCode === TAB_KEY) {
       e.preventDefault();
       const newDepth = depth + 1;
       if (newDepth > -1) {
@@ -88,14 +90,24 @@ const Item = React.memo(props => {
       onReturn(id);
     }
 
-    if (e.keyCode === 8 && typeof checkbox === "object") {
+    if (
+      e.keyCode === DELETE_KEY &&
+      inputRef.selectionStart === "" &&
+      typeof checkbox === "object"
+    ) {
       // delete/backspacing a checkbox removes the checkbox
       return onCheckboxChange(id, text, undefined);
     }
 
-    if ((e.keyCode === 8 && text === "") || e.keyCode === 46) {
+    if ((e.keyCode === DELETE_KEY && text === "") || e.keyCode === 46) {
       e.preventDefault();
       onDelete(id);
+    }
+
+    const cursorPosition = 12345;
+
+    if (e.keyCode === DELETE_KEY && text.length > 0 && cursorPosition === 0) {
+      // deleting should merge the CURRENT and PREVIOUS rows
     }
   };
 
@@ -109,34 +121,35 @@ const Item = React.memo(props => {
     depth
   });
 
-  const inputRef = React.useRef(null);
-
   React.useEffect(() => {
     if (autoFocus) {
-      log({ id, autoFocus });
       inputRef.current.focus();
     }
-  }, [inputRef, id, autoFocus]);
+  }, [autoFocus]);
 
   const showCheckbox = typeof checkbox === "object";
 
   return (
     <Flipped flipId={id}>
       <div ref={ref => drop(preview(ref))} className={classes.root}>
-        <div style={{ marginLeft: `${depth * 20}px` }} className={classes.body}>
+        <div style={{ marginLeft: `${depth * 40}px` }} className={classes.body}>
           <IconButton ref={drag}>
+            {typeof number === "number" && number > 0 && `${number}. `}
             <ReorderIcon />
           </IconButton>
           <Box display="flex" flex={1} px={1}>
             {showCheckbox && (
               <Checkbox onChange={handleCheckbox} checked={checkbox.checked} />
             )}
-
             <TextRow
               {...{ inputRef, text, handleChange, handleKeyDown, autoFocus }}
             />
           </Box>
-          <IconButton onClick={handleClickDelete}>
+          <IconButton
+            onClick={() => {
+              onDelete(id);
+            }}
+          >
             <CloseIcon />
           </IconButton>
         </div>

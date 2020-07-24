@@ -12,6 +12,8 @@ export default function TextRow({
     <InputBase
       ref={inputRef}
       fullWidth
+      margin="dense"
+      multiline={true}
       value={text}
       onChange={handleChange}
       onKeyDown={handleKeyDown}

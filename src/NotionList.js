@@ -15,7 +15,7 @@ import Sortly, {
 
 import Item from "./Item";
 
-function NotionList({ defaultItems, maxDepth }) {
+function NotionList({ defaultItems, listType, maxDepth }) {
   const [items, setItems] = React.useState(defaultItems);
   const flipKey = items.map(({ id }) => id).join(".");
 
@@ -52,10 +52,20 @@ function NotionList({ defaultItems, maxDepth }) {
 
   const handleDelete = id => {
     const index = items.findIndex(item => item.id === id);
+
     if (index > 0) {
-      items[index - 1].autoFocus = true;
+      // update autoFocus when an item is removed
+      setItems(
+        remove(
+          update(items, {
+            [index - 1]: { autoFocus: { $set: true } }
+          }),
+          index
+        )
+      );
+    } else {
+      setItems(remove(items, index));
     }
-    setItems(remove(items, index));
   };
 
   function handleClickAdd() {
@@ -88,10 +98,34 @@ function NotionList({ defaultItems, maxDepth }) {
     );
   };
 
+  const depthIndex = {};
+
+  function addLineNumbers(rowWithNumbers) {
+    const { number, ...row } = rowWithNumbers;
+    let newObject = row;
+
+    depthIndex[row.depth] = depthIndex[row.depth] || 1; // start indexing at 1.
+
+    if (listType === "top" && row.depth === 0) {
+      newObject = Object.assign({ number: depthIndex[row.depth] }, row);
+      depthIndex[row.depth]++;
+    }
+
+    if (listType === "all") {
+      newObject = Object.assign({ number: depthIndex[row.depth] }, row);
+      depthIndex[row.depth]++;
+      depthIndex[row.depth + 1] = 1;
+    }
+
+    return newObject;
+  }
+
+  const numberedItems = items.map(addLineNumbers);
+
   return (
     <div>
       <Flipper flipKey={flipKey}>
-        <Sortly items={items} onChange={handleChange}>
+        <Sortly items={numberedItems} onChange={handleChange}>
           {props => (
             <Item
               {...props}
@@ -112,9 +146,9 @@ function NotionList({ defaultItems, maxDepth }) {
       <hr />
       <textarea
         readOnly={true}
-        rows={80}
+        rows={20}
         cols={80}
-        value={JSON.stringify(items, null, 4)}
+        value={JSON.stringify(numberedItems, null, 4)}
       />
     </div>
   );
