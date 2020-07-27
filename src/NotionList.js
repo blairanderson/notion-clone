@@ -30,22 +30,22 @@ function NotionList({ defaultItems, listType, maxDepth, apiGet, apiPost }) {
   let FIRST_LOAD = 0;
   const [items, setItems] = React.useState(defaultItems);
   const [loading, setLoading] = React.useState(false);
-  const isFetching = false;
-
-  // const { isFetching } = useQuery("items", async () => {
-  //   const { data } = await axios.get(apiGet);
-  //   setItems(data);
-  //   return data;
 
   React.useEffect(() => {
     if (FIRST_LOAD === 0 && typeof apiGet === "string") {
       setLoading(true);
-      axios.get(apiGet).then(({ config, data, headers }) => {
-        FIRST_LOAD++;
-        console.log(data);
-        setItems(data);
-        setLoading(false);
-      });
+      axios
+        .get(apiGet)
+        .then(({ config, data, headers }) => {
+          FIRST_LOAD++;
+          console.log(data);
+          setItems(data);
+          setLoading(false);
+        })
+        .catch(e => {
+          setLoading(false);
+          console.error(`Could Not fetch ${apiGet}...`);
+        });
     }
   }, [FIRST_LOAD, apiGet]);
 
@@ -56,10 +56,16 @@ function NotionList({ defaultItems, listType, maxDepth, apiGet, apiPost }) {
 
   function onChangeAsync(items) {
     setLoading(true);
-    axios.post(apiPost, { items }).then(({ config, data, headers }) => {
-      setItems(data);
-      setLoading(false);
-    });
+    axios
+      .post(apiPost, { items })
+      .then(({ config, data, headers }) => {
+        setItems(data);
+        setLoading(false);
+      })
+      .catch(e => {
+        setLoading(false);
+        console.error(`Could Not fetch ${apiGet}...`);
+      });
   }
 
   const handleChange = newItems => {
@@ -178,7 +184,7 @@ function NotionList({ defaultItems, listType, maxDepth, apiGet, apiPost }) {
 
   // include optional line numbers onto the front of each list element
   const depthIndex = {};
-  function addLineNumbers(rowWithNumbers) {
+  const numberedItems = items.map(function addLineNumbers(rowWithNumbers) {
     const { number, ...row } = rowWithNumbers;
     let newObject = row;
 
@@ -196,23 +202,21 @@ function NotionList({ defaultItems, listType, maxDepth, apiGet, apiPost }) {
     }
 
     return newObject;
-  }
+  });
 
   // slightly GREY the dashboard and prevent any clicks
   const preventEditsWhileLoading = e => {
     if (loading) {
       e.preventDefault();
-      e.stopPropagation(); //  <------ Here is the magic
+      e.stopPropagation();
     }
   };
 
   const containerStyle = {};
-  if (loading || isFetching) {
+  if (loading) {
     containerStyle["pointerEvents"] = "none";
     containerStyle["opacity"] = 0.65;
   }
-
-  const numberedItems = items.map(addLineNumbers);
 
   return (
     <div
@@ -220,7 +224,6 @@ function NotionList({ defaultItems, listType, maxDepth, apiGet, apiPost }) {
       onMouseDown={preventEditsWhileLoading}
       style={containerStyle}
     >
-      <div>&nbsp;{isFetching && <>Fetching...</>}</div>
       <div>&nbsp;{loading && <>Syncing...</>}</div>
       <Flipper flipKey={items.map(i => i.id).join(".")}>
         <Sortly
@@ -245,13 +248,6 @@ function NotionList({ defaultItems, listType, maxDepth, apiGet, apiPost }) {
           Add New Item
         </Button>
       </Box>
-      <hr />
-      <textarea
-        readOnly={true}
-        rows={20}
-        cols={80}
-        value={JSON.stringify(numberedItems, null, 4)}
-      />
     </div>
   );
 }

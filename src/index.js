@@ -2,18 +2,12 @@ import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
 import * as serviceWorker from "./serviceWorker";
-
-window.ActiveListItems = [
-  { id: 1, text: "Some Awesome Notes here", depth: 0 },
-  { id: 2, text: "i love these notes", depth: 1, checkbox: { checked: false } },
-  {
-    id: 3,
-    text:
-      "These will immediately be overwritten by the server once it is hooked up.",
-    depth: 0,
-    checkbox: { checked: true }
-  }
-];
+// import config from "./windowConfig.js";
+// const config = {
+//   ActiveListItems: ,
+//   REACT_APP_API_GET: ,
+//   REACT_APP_API_POST: window.REACT_APP_API_POST
+// };
 
 const TOP_LEVEL_NUMBERS = "top";
 const ALL_LEVEL_NUMBERS = "all";
@@ -25,19 +19,16 @@ const LIST_TYPES = {
   "Top Level Numbers": TOP_LEVEL_NUMBERS
 };
 
+console.log(`apiGet: ${window.REACT_APP_API_GET}`);
+console.log(`apiPost:${window.REACT_APP_API_POST}`);
+
 const OPTIONS = {
   maxDepth: 1,
   listType: LIST_TYPES["Top Level Numbers"],
-  defaultItems: window.ActiveListItems
+  defaultItems: window.ActiveListItems,
+  apiGet: window.REACT_APP_API_GET,
+  apiPost: window.REACT_APP_API_POST
 };
-
-if (process.env.REACT_APP_API_GET) {
-  OPTIONS["apiGet"] = process.env.REACT_APP_API_GET;
-}
-
-if (process.env.REACT_APP_API_POST) {
-  OPTIONS["apiPost"] = process.env.REACT_APP_API_POST;
-}
 
 ReactDOM.render(<App {...OPTIONS} />, document.getElementById("root"));
 
