@@ -4,6 +4,8 @@ import { InputBase } from "@material-ui/core";
 export default function TextRow({
   inputRef,
   text,
+  margin,
+  inputProps,
   handleChange,
   handleKeyDown,
   autoFocus
@@ -12,7 +14,8 @@ export default function TextRow({
     <InputBase
       ref={inputRef}
       fullWidth
-      margin="dense"
+      margin={margin}
+      inputProps={inputProps}
       multiline={true}
       value={text}
       onChange={handleChange}
