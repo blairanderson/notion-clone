@@ -128,6 +128,17 @@ const Item = React.memo(props => {
   }, [autoFocus]);
 
   const showCheckbox = typeof checkbox === "object";
+  const iconSize = 15;
+  const margin = depth === 0 ? "dense" : "none";
+  let inputProps = { style: { fontWeight: 100 } };
+  if (depth === 0) {
+    inputProps = Object.assign(inputProps, { style: { fontWeight: 600 } });
+  }
+  if (showCheckbox && checkbox.checked) {
+    inputProps = Object.assign(inputProps, {
+      style: { textDecoration: "line-through" }
+    });
+  }
 
   return (
     <Flipped flipId={id}>
@@ -135,14 +146,22 @@ const Item = React.memo(props => {
         <div style={{ marginLeft: `${depth * 40}px` }} className={classes.body}>
           <IconButton ref={drag}>
             {typeof number === "number" && number > 0 && `${number}. `}
-            <ReorderIcon />
+            <ReorderIcon style={{ fontSize: iconSize }} />
           </IconButton>
           <Box display="flex" flex={1} px={1}>
             {showCheckbox && (
               <Checkbox onChange={handleCheckbox} checked={checkbox.checked} />
             )}
             <TextRow
-              {...{ inputRef, text, handleChange, handleKeyDown, autoFocus }}
+              {...{
+                inputProps,
+                margin,
+                inputRef,
+                text,
+                handleChange,
+                handleKeyDown,
+                autoFocus
+              }}
             />
           </Box>
           <IconButton
@@ -150,7 +169,7 @@ const Item = React.memo(props => {
               onDelete(id);
             }}
           >
-            <CloseIcon />
+            <CloseIcon style={{ fontSize: iconSize }} />
           </IconButton>
         </div>
       </div>
