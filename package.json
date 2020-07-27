@@ -27,7 +27,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "INLINE_RUNTIME_CHUNK=false react-scripts build",
-    "movebuild": "rm -rf ../vendor-db/public/agenda/ && mkdir ../vendor-db/public/agenda/ && cp -fR ./build/* ../vendor-db/public/agenda/",
+    "movebuild": "rm -rf ../vendor-db/public/agenda/ && mkdir ../vendor-db/public/agenda/ && cp -fR ./build/* ../vendor-db/public/agenda/ && rm ../vendor-db/public/agenda/index.html && rm ../vendor-db/public/agenda/service-worker.js && rm ../vendor-db/public/agenda/precache-manifest.*.js",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
