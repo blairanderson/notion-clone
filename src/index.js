@@ -6,8 +6,11 @@ import * as serviceWorker from "./serviceWorker";
 window.ActiveListItems = [
   { id: 1, text: "Some Awesome Notes here", depth: 0 },
   { id: 2, text: "i love these notes", depth: 1, checkbox: { checked: false } },
+  { id: 3, text: "and these", depth: 1 },
+  { id: 4, text: "and this MORE", depth: 1 },
+  { id: 5, text: "i love these notes", depth: 1, checkbox: { checked: false } },
   {
-    id: 3,
+    id: 6,
     text:
       "These will immediately be overwritten by the server once it is hooked up.",
     depth: 0,
