@@ -1,4 +1,5 @@
 import React from "react";
+import log from "../log";
 import { makeStyles } from "@material-ui/styles";
 import { IconButton, Box, Checkbox } from "@material-ui/core";
 import ReorderIcon from "@material-ui/icons/Reorder";
@@ -30,10 +31,12 @@ const Item = React.memo(props => {
     data: { number, text, autoFocus, checkbox },
     onTextChange,
     changeDepth,
+    onMergeUp,
     onCheckboxChange,
     onDelete,
     onReturn
   } = props;
+  const showCheckbox = typeof checkbox === "object";
   const inputRef = React.useRef(null);
   // const [hasFocus, setFocus] = React.useState(false);
   // const [handleTextChange] = useDebouncedCallback(onTextChange, 5);
@@ -57,23 +60,23 @@ const Item = React.memo(props => {
       });
     }
 
-    // console.log("onTextChange:" + e.target.value);
     onTextChange(id, e.target.value);
   }
 
   const TAB_KEY = 9;
-  const DELETE_KEY = 8;
+  const BACKSPACE = 8;
+  const DELETE_KEY = 46;
 
   const handleKeyDown = e => {
-    console.log(`keyCode:${e.keyCode} key:${e.key}`);
-    const { selectionStart, selectionEnd } = inputRef.current;
-    log({ selectionStart, selectionEnd });
+    log(`keyCode:${e.keyCode} key:${e.key}`);
+    const { selectionStart, selectionEnd } = e.target;
+    const cursorStart = selectionStart === 0 && selectionEnd === 0;
 
     if (e.shiftKey && e.keyCode === TAB_KEY) {
       e.preventDefault();
       const newDepth = depth - 1;
       if (newDepth > -1) {
-        changeDepth(id, newDepth);
+        return changeDepth(id, newDepth);
       }
     }
 
@@ -81,33 +84,31 @@ const Item = React.memo(props => {
       e.preventDefault();
       const newDepth = depth + 1;
       if (newDepth > -1) {
-        changeDepth(id, newDepth);
+        return changeDepth(id, newDepth);
       }
     }
 
     if (e.key === "Enter") {
+      log({ selectionStart, selectionEnd, length: e.target.value.length });
       e.preventDefault();
-      onReturn(id);
+      return onReturn({ id, selectionStart, selectionEnd });
     }
 
-    if (
-      e.keyCode === DELETE_KEY &&
-      inputRef.selectionStart === "" &&
-      typeof checkbox === "object"
-    ) {
-      // delete/backspacing a checkbox removes the checkbox
+    // backspacing a checkbox while at front cursor position removes the checkbox
+    if (cursorStart && showCheckbox && e.keyCode === BACKSPACE) {
+      e.preventDefault();
       return onCheckboxChange(id, text, undefined);
     }
 
-    if ((e.keyCode === DELETE_KEY && text === "") || e.keyCode === 46) {
+    // if the text is empty and delete, remove the whole row
+    if (text === "" && (e.keyCode === DELETE_KEY || e.keyCode === BACKSPACE)) {
       e.preventDefault();
-      onDelete(id);
+      return onDelete(id);
     }
 
-    const cursorPosition = 12345;
-
-    if (e.keyCode === DELETE_KEY && text.length > 0 && cursorPosition === 0) {
-      // deleting should merge the CURRENT and PREVIOUS rows
+    if (cursorStart && depth > 0 && e.keyCode === BACKSPACE) {
+      e.preventDefault();
+      return onMergeUp(id);
     }
   };
 
@@ -127,7 +128,6 @@ const Item = React.memo(props => {
     }
   }, [autoFocus]);
 
-  const showCheckbox = typeof checkbox === "object";
   const iconSize = 15;
   const margin = depth === 0 ? "dense" : "none";
   let inputProps = { style: { fontWeight: 100 } };
@@ -177,7 +177,3 @@ const Item = React.memo(props => {
   );
 });
 export default Item;
-
-function log(p) {
-  console.log(JSON.stringify(p));
-}

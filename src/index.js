@@ -2,12 +2,6 @@ import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
 import * as serviceWorker from "./serviceWorker";
-// import config from "./windowConfig.js";
-// const config = {
-//   ActiveListItems: ,
-//   REACT_APP_API_GET: ,
-//   REACT_APP_API_POST: window.REACT_APP_API_POST
-// };
 
 const TOP_LEVEL_NUMBERS = "top";
 const ALL_LEVEL_NUMBERS = "all";

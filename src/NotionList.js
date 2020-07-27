@@ -1,4 +1,5 @@
 import React from "react";
+import log from "./log";
 import HTML5Backend from "react-dnd-html5-backend";
 import faker from "faker/locale/en";
 import { Box, Button } from "@material-ui/core";
@@ -74,6 +75,7 @@ function NotionList({ defaultItems, listType, maxDepth, apiGet, apiPost }) {
       debounceOnChangeSlow(newItems);
     }
   };
+
   const handleChangeNow = newItems => {
     setItems(newItems);
     if (typeof apiPost === "string") {
@@ -88,6 +90,32 @@ function NotionList({ defaultItems, listType, maxDepth, apiGet, apiPost }) {
         [index]: { text: { $set: text } }
       })
     );
+  };
+
+  // creates a new blank row
+  const onMergeUp = id => {
+    // get text from the current ID and merge to the previous ID
+    log("on Merge Up");
+    const index = items.findIndex(item => item.id === id);
+    // if the rows are on the same depth
+    if (
+      items[index] &&
+      items[index - 1] &&
+      items[index].depth === items[index - 1].depth
+    ) {
+      const newtext = items[index - 1].text + " " + items[index].text;
+
+      handleChangeNow(
+        remove(
+          update(items, {
+            [index - 1]: { text: { $set: newtext }, autoFocus: { $set: true } }
+          }),
+          index
+        )
+      );
+    }
+
+    // merges the contents of the current index to the previous index
   };
 
   const handleCheckboxChange = (id, text, action) => {
@@ -108,46 +136,62 @@ function NotionList({ defaultItems, listType, maxDepth, apiGet, apiPost }) {
     );
   };
 
+  const deleteAtIndex = index => {
+    if (index > 0) {
+      // update autoFocus when an item is removed
+      handleChangeNow(
+        remove(
+          update(items, {
+            [index - 1]: { autoFocus: { $set: true } }
+          }),
+          index
+        )
+      );
+    } else {
+      handleChangeNow(remove(items, index));
+    }
+  };
+
+  // delete row and children
+
   const handleDelete = id => {
     const index = items.findIndex(item => item.id === id);
+    let childrenToDelete = 0;
     let msg = `Are you sure you want to delete "${items[index].text}"?`;
+    log("items[index].depth:" + items[index].depth);
 
-    console.log("items[index].depth:" + items[index].depth);
     if (items[index].depth === 0) {
       const nextParentIndex = items.findIndex(function(el, el_index) {
         return el.depth === 0 && el_index > index;
       });
-      console.log(JSON.stringify({ nextParentIndex }));
+
+      log({ nextParentIndex });
       // count the number of children
       // number of items with higher index until the next depth 0
-      const childrenToDelete = items.filter(function(el, el_index) {
+      childrenToDelete = items.filter(function(el, el_index) {
         return nextParentIndex > -1
           ? el_index > index && el_index < nextParentIndex
           : el_index > index;
-      });
+      }).length;
 
-      console.log(JSON.stringify({ childrenToDelete }));
+      log({ childrenToDelete });
 
-      if (childrenToDelete.length > 0) {
-        msg =
-          msg + `\n\nThis will also delete ${childrenToDelete.length} todos...`;
+      if (childrenToDelete > 0) {
+        msg = msg + `\n\nThis will also delete ${childrenToDelete} todos...`;
       }
     }
 
+    log({ childrenToDelete });
+    // const endOfList = items[index + 1] === undefined;
+    // const nextItemIsMoreShallow = items[index].depth;
+    const deleteImmediately =
+      childrenToDelete === 0 && items[index].text === "";
+    if (deleteImmediately) {
+      return deleteAtIndex(index);
+    }
+
     if (window.confirm(msg)) {
-      if (index > 0) {
-        // update autoFocus when an item is removed
-        handleChangeNow(
-          remove(
-            update(items, {
-              [index - 1]: { autoFocus: { $set: true } }
-            }),
-            index
-          )
-        );
-      } else {
-        handleChangeNow(remove(items, index));
-      }
+      return deleteAtIndex(index);
     }
   };
 
@@ -167,17 +211,34 @@ function NotionList({ defaultItems, listType, maxDepth, apiGet, apiPost }) {
   }
 
   // creates a new blank row
-  const handleReturn = id => {
+  const handleReturn = ({ id, selectionStart, selectionEnd }) => {
     const index = items.findIndex(item => item.id === id);
+    let end = selectionEnd;
+
+    if (selectionEnd === selectionStart) {
+      end = items[index].text.length;
+    }
+
+    const newText = items[index].text.slice(selectionStart, end);
+
+    let updateText = items[index].text.split("");
+    updateText.splice(selectionStart, end);
+    updateText = updateText.join("");
+
     handleChange(
-      insert(
-        items.map(item => Object.assign(item, { autoFocus: false })),
+      update(
+        insert(
+          items.map(item => Object.assign(item, { autoFocus: false })),
+          {
+            id: Date.now(),
+            text: newText,
+            autoFocus: true
+          },
+          index
+        ),
         {
-          id: Date.now(),
-          text: "",
-          autoFocus: true
-        },
-        index
+          [index]: { text: { $set: updateText } }
+        }
       )
     );
   };
@@ -237,6 +298,7 @@ function NotionList({ defaultItems, listType, maxDepth, apiGet, apiPost }) {
               onTextChange={handleTextChange}
               changeDepth={changeDepth}
               onCheckboxChange={handleCheckboxChange}
+              onMergeUp={onMergeUp}
               onDelete={handleDelete}
               onReturn={handleReturn}
             />
