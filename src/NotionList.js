@@ -193,7 +193,11 @@ function NotionList({ defaultItems, listType, maxDepth, apiGet, apiPost }) {
     handleChange(
       add(items, {
         id: Date.now(),
-        text: faker.name.findName(),
+        text: [
+          faker.company.bsBuzz(),
+          faker.company.bsAdjective(),
+          faker.company.bsNoun()
+        ].join(" "),
         autoFocus: true
       })
     );
