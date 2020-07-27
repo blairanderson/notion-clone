@@ -2,9 +2,11 @@ import React from "react";
 import HTML5Backend from "react-dnd-html5-backend";
 import faker from "faker/locale/en";
 import { Box, Button } from "@material-ui/core";
+import axios from "axios";
 import { Flipper } from "react-flip-toolkit";
 import update from "immutability-helper";
 import { DndProvider } from "react-dnd";
+import Item from "./Item";
 import Sortly, {
   ContextProvider,
   add,
@@ -13,19 +15,69 @@ import Sortly, {
   updateDepth
 } from "react-sortly";
 
-import Item from "./Item";
+const debounce = (fn, delay) => {
+  let timer = null;
+  return function(...args) {
+    const context = this;
+    timer && clearTimeout(timer);
+    timer = setTimeout(() => {
+      fn.apply(context, args);
+    }, delay);
+  };
+};
 
-function NotionList({ defaultItems, listType, maxDepth }) {
+function NotionList({ defaultItems, listType, maxDepth, apiGet, apiPost }) {
+  let FIRST_LOAD = 0;
   const [items, setItems] = React.useState(defaultItems);
-  const flipKey = items.map(({ id }) => id).join(".");
+  const [loading, setLoading] = React.useState(false);
+  const isFetching = false;
+
+  // const { isFetching } = useQuery("items", async () => {
+  //   const { data } = await axios.get(apiGet);
+  //   setItems(data);
+  //   return data;
+
+  React.useEffect(() => {
+    if (FIRST_LOAD === 0 && typeof apiGet === "string") {
+      setLoading(true);
+      axios.get(apiGet).then(({ config, data, headers }) => {
+        FIRST_LOAD++;
+        console.log(data);
+        setItems(data);
+        setLoading(false);
+      });
+    }
+  }, [FIRST_LOAD, apiGet]);
+
+  const debounceOnChangeSlow = React.useCallback(
+    debounce(onChangeAsync, 2500),
+    []
+  );
+
+  function onChangeAsync(items) {
+    setLoading(true);
+    axios.post(apiPost, { items }).then(({ config, data, headers }) => {
+      setItems(data);
+      setLoading(false);
+    });
+  }
 
   const handleChange = newItems => {
     setItems(newItems);
+    if (typeof apiPost === "string") {
+      debounceOnChangeSlow(newItems);
+    }
+  };
+  const handleChangeNow = newItems => {
+    setItems(newItems);
+    if (typeof apiPost === "string") {
+      onChangeAsync(newItems);
+    }
   };
 
   const handleTextChange = (id, text) => {
     const index = items.findIndex(item => item.id === id);
-    setItems(
+    handleChange(
       update(items, {
         [index]: { text: { $set: text } }
       })
@@ -36,14 +88,14 @@ function NotionList({ defaultItems, listType, maxDepth }) {
     const index = items.findIndex(item => item.id === id);
 
     if (action === "toggle") {
-      return setItems(
+      return handleChange(
         update(items, {
           [index]: { checkbox: { $toggle: ["checked"] } }
         })
       );
     }
 
-    setItems(
+    handleChange(
       update(items, {
         [index]: { text: { $set: text }, $merge: { checkbox: action } }
       })
@@ -52,24 +104,49 @@ function NotionList({ defaultItems, listType, maxDepth }) {
 
   const handleDelete = id => {
     const index = items.findIndex(item => item.id === id);
+    let msg = `Are you sure you want to delete "${items[index].text}"?`;
 
-    if (index > 0) {
-      // update autoFocus when an item is removed
-      setItems(
-        remove(
-          update(items, {
-            [index - 1]: { autoFocus: { $set: true } }
-          }),
-          index
-        )
-      );
-    } else {
-      setItems(remove(items, index));
+    console.log("items[index].depth:" + items[index].depth);
+    if (items[index].depth === 0) {
+      const nextParentIndex = items.findIndex(function(el, el_index) {
+        return el.depth === 0 && el_index > index;
+      });
+      console.log(JSON.stringify({ nextParentIndex }));
+      // count the number of children
+      // number of items with higher index until the next depth 0
+      const childrenToDelete = items.filter(function(el, el_index) {
+        return nextParentIndex > -1
+          ? el_index > index && el_index < nextParentIndex
+          : el_index > index;
+      });
+
+      console.log(JSON.stringify({ childrenToDelete }));
+
+      if (childrenToDelete.length > 0) {
+        msg =
+          msg + `\n\nThis will also delete ${childrenToDelete.length} todos...`;
+      }
+    }
+
+    if (window.confirm(msg)) {
+      if (index > 0) {
+        // update autoFocus when an item is removed
+        handleChangeNow(
+          remove(
+            update(items, {
+              [index - 1]: { autoFocus: { $set: true } }
+            }),
+            index
+          )
+        );
+      } else {
+        handleChangeNow(remove(items, index));
+      }
     }
   };
 
   function handleClickAdd() {
-    setItems(
+    handleChange(
       add(items, {
         id: Date.now(),
         text: faker.name.findName(),
@@ -80,12 +157,13 @@ function NotionList({ defaultItems, listType, maxDepth }) {
 
   function changeDepth(id, newDepth) {
     const index = items.findIndex(item => item.id === id);
-    setItems(updateDepth(items, index, newDepth, maxDepth || 10));
+    handleChange(updateDepth(items, index, newDepth, maxDepth));
   }
 
+  // creates a new blank row
   const handleReturn = id => {
     const index = items.findIndex(item => item.id === id);
-    setItems(
+    handleChange(
       insert(
         items.map(item => Object.assign(item, { autoFocus: false })),
         {
@@ -98,8 +176,8 @@ function NotionList({ defaultItems, listType, maxDepth }) {
     );
   };
 
+  // include optional line numbers onto the front of each list element
   const depthIndex = {};
-
   function addLineNumbers(rowWithNumbers) {
     const { number, ...row } = rowWithNumbers;
     let newObject = row;
@@ -120,11 +198,31 @@ function NotionList({ defaultItems, listType, maxDepth }) {
     return newObject;
   }
 
+  // slightly GREY the dashboard and prevent any clicks
+  const preventEditsWhileLoading = e => {
+    if (loading) {
+      e.preventDefault();
+      e.stopPropagation(); //  <------ Here is the magic
+    }
+  };
+
+  const containerStyle = {};
+  if (loading || isFetching) {
+    containerStyle["pointerEvents"] = "none";
+    containerStyle["opacity"] = 0.65;
+  }
+
   const numberedItems = items.map(addLineNumbers);
 
   return (
-    <div>
-      <Flipper flipKey={flipKey}>
+    <div
+      onClick={preventEditsWhileLoading}
+      onMouseDown={preventEditsWhileLoading}
+      style={containerStyle}
+    >
+      <div>&nbsp;{isFetching && <>Fetching...</>}</div>
+      <div>&nbsp;{loading && <>Syncing...</>}</div>
+      <Flipper flipKey={items.map(i => i.id).join(".")}>
         <Sortly
           items={numberedItems}
           maxDepth={maxDepth}

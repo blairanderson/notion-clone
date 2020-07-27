@@ -3,10 +3,16 @@ import ReactDOM from "react-dom";
 import App from "./App";
 import * as serviceWorker from "./serviceWorker";
 
-const items = [
+window.ActiveListItems = [
   { id: 1, text: "Some Awesome Notes here", depth: 0 },
   { id: 2, text: "i love these notes", depth: 1, checkbox: { checked: false } },
-  { id: 3, text: "i love these notes", depth: 0, checkbox: { checked: true } }
+  {
+    id: 3,
+    text:
+      "These will immediately be overwritten by the server once it is hooked up.",
+    depth: 0,
+    checkbox: { checked: true }
+  }
 ];
 
 const TOP_LEVEL_NUMBERS = "top";
@@ -19,14 +25,21 @@ const LIST_TYPES = {
   "Top Level Numbers": TOP_LEVEL_NUMBERS
 };
 
-ReactDOM.render(
-  <App
-    maxDepth={1}
-    listType={LIST_TYPES["Top Level Numbers"]}
-    defaultItems={items}
-  />,
-  document.getElementById("root")
-);
+const OPTIONS = {
+  maxDepth: 1,
+  listType: LIST_TYPES["Top Level Numbers"],
+  defaultItems: window.ActiveListItems
+};
+
+if (process.env.REACT_APP_API_GET) {
+  OPTIONS["apiGet"] = process.env.REACT_APP_API_GET;
+}
+
+if (process.env.REACT_APP_API_POST) {
+  OPTIONS["apiPost"] = process.env.REACT_APP_API_POST;
+}
+
+ReactDOM.render(<App {...OPTIONS} />, document.getElementById("root"));
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
