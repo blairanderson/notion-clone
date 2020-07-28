@@ -6,7 +6,7 @@ const CODESANDBOX =
 
 const headerLink = window.location.href.startsWith("https://codesandbox")
   ? "https://codesandbox.io/s/github/blairanderson/notion-clone"
-  : "https://notionclone.netlify.app/";
+  : "https://react-action-todo.netlify.app";
 
 export default function Header(props) {
   return (
