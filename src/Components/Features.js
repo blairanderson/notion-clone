@@ -2,7 +2,7 @@ import React from "react";
 
 const FEATURES = [
   "Drag and Drop Items",
-  "Nested Items (with `maxDepth` configuration)",
+  "Nested Items have configuratable `maxDepth`",
   "'Enter' Key creates a new row",
   "'Enter' Key moves text after cursor to new row, if cursor in middle of row.",
   "'Backspace' key at beginning of Row should remove the row if empty",
@@ -18,12 +18,23 @@ const FEATURES = [
 
 const TODO = [
   "extract table functionality to NPM package",
-  "Should be able to drag/drop photos onto the page, and create new image-rows"
+  "uploading photos onto each row",
+  "Should be able to drag/drop photos onto the page"
 ];
 
 export default function Features(props) {
   return (
     <>
+      <p>
+        <strong>Why Did I Build This?</strong>
+        <br />
+        Apps like Notion and Airtable set a new standard interface expectation
+        for user input. I have a private work application with rudimentary
+        "todos" and just cringed every time that I had to submit a form to
+        "re-order" tasks.
+        <br />
+        This application is a starting point for flexibility.
+      </p>
       <label>Features:</label>
       <ul>
         {FEATURES.map(function(e) {

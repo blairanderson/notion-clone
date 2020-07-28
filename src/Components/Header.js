@@ -20,9 +20,10 @@ export default function Header(props) {
           }}
           href={headerLink}
         >
-          Notion-Like List Builder
+          React Action Todo
         </a>
       </h1>
+      <h2>Medium/Notion-Like List application</h2>
       <div style={{ marginBottom: "10px" }}>
         <a rel="noopener noreferrer" target="_blank" href={GITHUB}>
           Github
